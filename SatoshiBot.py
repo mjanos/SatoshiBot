@@ -12,7 +12,7 @@ async def get_crypto_data():
     crypto_links = {'BTC':"https://api.coinbase.com/v2/exchange-rates?currency=BTC",
                     'ETH':"https://api.coinbase.com/v2/exchange-rates?currency=ETH",
                     'LTC':"https://api.coinbase.com/v2/exchange-rates?currency=LTC"}
-    exchange_rates = {}
+    exchange_rates = {'BTC':{},'ETH':{},'LTC':{}}
 
     for currency,link in crypto_links.items():
         data = urllib.request.urlopen(link)
@@ -84,24 +84,33 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
-    exchange_rates = await get_crypto_data()
+    if client.user in message.mentions:
+        msg1 = await client.send_message(message.channel,'YES. UMM HI???? HELLO?????')
+        msg2 = await client.send_message(message.channel,"...")
+
     if message.content.lower().startswith('$btc'):
         msg = await client.send_message(message.channel, 'Getting BTC Price...')
+    elif message.content.lower().startswith('$eth'):
+        msg = await client.send_message(message.channel, 'Getting ETH Price...')
+    elif message.content.lower().startswith('$ltc'):
+        msg = await client.send_message(message.channel, 'Getting LTC Price...')
+
+
+
+    exchange_rates = await get_crypto_data()
+    if message.content.lower().startswith('$btc'):
         price_string = "1 BTC = $%0.2f USD" % float(exchange_rates['BTC']['USD'])
         await client.edit_message(msg,price_string)
     elif message.content.lower().startswith('$eth'):
-        msg = await client.send_message(message.channel, 'Getting ETH Price...')
         price_string = "1 ETH = %0.5f BTC" % float(exchange_rates['ETH']['BTC'])
         await client.edit_message(msg,price_string)
     elif message.content.lower().startswith('$ltc'):
-        msg = await client.send_message(message.channel, 'Getting LTC Price...')
         price_string = "1 LTC = %0.5f BTC" % float(exchange_rates['LTC']['BTC'])
         await client.edit_message(msg,price_string)
     elif message.content.lower().startswith('$help'):
         await client.send_message(message.channel,'BTC -> USD = $btc\nETH -> BTC = $eth\nLTC -> BTC = $ltc')
 
     if client.user in message.mentions:
-        msg1 = await client.send_message(message.channel,'YES. UMM HI???? HELLO?????')
         price_string = time.strftime('```%b %d, %Y -- %I:%M%p```')
         #GET BTC
 
@@ -115,6 +124,6 @@ async def on_message(message):
 
         #GET LTC
         price_string = "%s\n1 LTC = $%0.2f USD" % (price_string,float(exchange_rates['LTC']['USD']))
-        msg2 = await client.send_message(message.channel,price_string + "```")
+        await client.edit_message(msg2,price_string + "```")
 
 client.run(os.environ['SATOSHI_KEY'])
