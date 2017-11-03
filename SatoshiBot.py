@@ -84,7 +84,7 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
-    exchange_rates = get_crypto_data()
+    exchange_rates = await get_crypto_data()
     if message.content.lower().startswith('$btc'):
         msg = await client.send_message(message.channel, 'Getting BTC Price...')
         price_string = "1 BTC = $%0.2f USD" % float(exchange_rates['BTC']['USD'])
