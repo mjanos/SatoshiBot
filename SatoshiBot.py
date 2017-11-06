@@ -21,30 +21,37 @@ class SatoshiBot(discord.Client):
                                     # "Have you heard about our lord and saviour, Bitcoin?"
                                     # ]
 
-
-        self.neutral_messages = ["https://ei.marketwatch.com//Multimedia/2017/08/14/Photos/NS/MW-FS292_bitcoi_20170814143201_NS.gif?uuid=dd35299a-811e-11e7-ac6f-9c8e992d421e","YES. UMM HI???? HELLO?????"]
+        self.neutral_messages = ["YES. UMM HI???? HELLO?????"]
 
         #self.negative_messages = ["Yeah, yeah I know...","I SWEAR I DIDN'T DO THIS PLEASE I'M A GOOD BOT","Blame Trump","Maybe Dimon was right...","There's a reason nobody knows my identity","https://media.coindesk.com/uploads/2014/03/grumpy-nakamoto.png"]
 
         self.exchange_rates = {'BTC':{},'ETH':{},'LTC':{}}
 
+        self.negative_file_mtime = None
+        self.positive_file_mtime = None
+
         self.previous_btc = None
 
         self.latest_fetch = None
 
-        self.load_messages()
+        await self.load_messages()
 
         super().__init__(*args,**kwargs)
 
     async def load_messages(self):
-        self.positive_messages = []
-        self.negative_messages = []
-        with open("positive_messages.txt","r") as positive_file:
-            for line in positive_file:
-                self.positive_messages.append(line)
-        with open("negative_messages.txt","r") as negative_file:
-            for line in negative_file:
-                self.negative_messages.append(line)
+        if self.positive_file_mtime is None or os.path.getmtime("positive_messages.txt") != self.positive_file_mtime:
+            self.positive_messages = []
+            with open("positive_messages.txt","r") as positive_file:
+                for line in positive_file:
+                    self.positive_messages.append(line)
+            self.positive_file_mtime = os.path.getmtime("positive_messages.txt")
+
+        if self.negative_file_mtime is None or os.path.getmtime("negative_messages.txt") != self.negative_file_mtime:
+            self.negative_messages = []
+            with open("negative_messages.txt","r") as negative_file:
+                for line in negative_file:
+                    self.negative_messages.append(line)
+            self.negative_file_mtime = os.path.getmtime("negative_messages.txt")
 
     async def get_crypto_data(self):
         if self.latest_fetch is None or datetime.datetime.now() - self.latest_fetch > datetime.timedelta(minutes=1):
@@ -108,6 +115,7 @@ class SatoshiBot(discord.Client):
                 else:
                     msg1 = await self.send_message(message.channel,"...")
                 msg2 = await self.send_message(message.channel,"...")
+                await self.load_messages()
 
             if message.content.lower().startswith('$btc'):
                 msg = await self.send_message(message.channel, 'Getting BTC Price...')
