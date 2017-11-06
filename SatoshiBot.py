@@ -34,8 +34,6 @@ class SatoshiBot(discord.Client):
 
         self.latest_fetch = None
 
-        await self.load_messages()
-
         super().__init__(*args,**kwargs)
 
     async def load_messages(self):
@@ -106,6 +104,7 @@ class SatoshiBot(discord.Client):
         print(self.user.name)
         print(self.user.id)
         print('------')
+        await self.load_messages()
 
     async def on_message(self,message):
         if self.user in message.mentions or message.content.lower().startswith('$btc') or message.content.lower().startswith('$eth') or message.content.lower().startswith('$ltc') or message.content.lower().startswith('$help'):
