@@ -14,11 +14,11 @@ class SatoshiBot(discord.Client):
                             'LTC':"https://api.coinbase.com/v2/exchange-rates?currency=LTC"}
 
         #self.positive_messages = ["McAfee might be on to something...",
-                                    "EAT THE RICH",
-                                    "https://www.youtube.com/watch?v=y2ak_oBeC-I",
-                                    "https://www.youtube.com/watch?v=HgzGwKwLmgM",
-                                    "Have you heard about our lord and saviour, Bitcoin?"
-                                    ]
+                                    # "EAT THE RICH",
+                                    # "https://www.youtube.com/watch?v=y2ak_oBeC-I",
+                                    # "https://www.youtube.com/watch?v=HgzGwKwLmgM",
+                                    # "Have you heard about our lord and saviour, Bitcoin?"
+                                    # ]
 
         self.neutral_messages = ["https://ei.marketwatch.com//Multimedia/2017/08/14/Photos/NS/MW-FS292_bitcoi_20170814143201_NS.gif?uuid=dd35299a-811e-11e7-ac6f-9c8e992d421e","YES. UMM HI???? HELLO?????"]
 
