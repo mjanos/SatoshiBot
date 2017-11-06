@@ -14,6 +14,7 @@ class SatoshiBot(discord.Client):
                             'LTC':"https://api.coinbase.com/v2/exchange-rates?currency=LTC"}
 
         #self.positive_messages = ["McAfee might be on to something...",
+
                                     # "EAT THE RICH",
                                     # "https://www.youtube.com/watch?v=y2ak_oBeC-I",
                                     # "https://www.youtube.com/watch?v=HgzGwKwLmgM",
