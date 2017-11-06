@@ -13,7 +13,7 @@ class SatoshiBot(discord.Client):
                             'ETH':"https://api.coinbase.com/v2/exchange-rates?currency=ETH",
                             'LTC':"https://api.coinbase.com/v2/exchange-rates?currency=LTC"}
 
-        self.positive_messages = ["McAfee might be on to something...",
+        #self.positive_messages = ["McAfee might be on to something...",
                                     "EAT THE RICH",
                                     "https://www.youtube.com/watch?v=y2ak_oBeC-I",
                                     "https://www.youtube.com/watch?v=HgzGwKwLmgM",
@@ -22,7 +22,7 @@ class SatoshiBot(discord.Client):
 
         self.neutral_messages = ["https://ei.marketwatch.com//Multimedia/2017/08/14/Photos/NS/MW-FS292_bitcoi_20170814143201_NS.gif?uuid=dd35299a-811e-11e7-ac6f-9c8e992d421e","YES. UMM HI???? HELLO?????"]
 
-        self.negative_messages = ["Yeah, yeah I know...","I SWEAR I DIDN'T DO THIS PLEASE I'M A GOOD BOT","Blame Trump","Maybe Dimon was right...","There's a reason nobody knows my identity","https://media.coindesk.com/uploads/2014/03/grumpy-nakamoto.png"]
+        #self.negative_messages = ["Yeah, yeah I know...","I SWEAR I DIDN'T DO THIS PLEASE I'M A GOOD BOT","Blame Trump","Maybe Dimon was right...","There's a reason nobody knows my identity","https://media.coindesk.com/uploads/2014/03/grumpy-nakamoto.png"]
 
         self.exchange_rates = {'BTC':{},'ETH':{},'LTC':{}}
 
@@ -30,7 +30,19 @@ class SatoshiBot(discord.Client):
 
         self.latest_fetch = None
 
+        self.load_messages()
+
         super().__init__(*args,**kwargs)
+
+    async def load_messages(self):
+        self.positive_messages = []
+        self.negative_messages = []
+        with open("positive_messages.txt","r") as positive_file:
+            for line in positive_file:
+                self.positive_messages.append(line)
+        with open("negative_messages.txt","r") as negative_file:
+            for line in negative_file:
+                self.negative_messages.append(line)
 
     async def get_crypto_data(self):
         if self.latest_fetch is None or datetime.datetime.now() - self.latest_fetch > datetime.timedelta(minutes=1):
@@ -79,22 +91,6 @@ class SatoshiBot(discord.Client):
     #         current_second = datetime.datetime.today().second
     #         seconds_left = (59-current_minute)*60 + (60-current_second)
     #         await asyncio.sleep(seconds_left)
-
-    # @client.event
-    # async def milestone_message():
-    #     msg = None
-    #     # for channel in client.get_all_channels():
-    #     #     if channel.name == "bitcoinchat":
-    #     #         for message in await client.logs_from(channel,limit=5000):
-    #     #             if message.author == client.user:
-    #     #                 #re.match("")
-    #     #                 pass
-    #     # while True:
-    #     #     await asyncio.sleep(600)
-    #     print("inloop")
-    #     # for channel in client.get_all_channels():
-    #     #     if channel.name == "botchat-adminonly":
-    #     #         await client.send_message(channel,"@Spikeybadooks test")
 
     async def on_ready(self):
         print('Logged in as')
