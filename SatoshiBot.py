@@ -1,4 +1,5 @@
 import os
+import re
 import discord
 import asyncio
 import urllib.request
@@ -9,25 +10,16 @@ import time
 import random
 import aiofiles
 
+def safe_float(x):
+    if type(x) is list and len(x) > 0:
+        return float(x[0])
+    else:
+        return 0
+
 class SatoshiBot(discord.Client):
     def __init__(self,*args,**kwargs):
-        self.crypto_links = {'BTC':"https://api.coinbase.com/v2/exchange-rates?currency=BTC",
-                            'ETH':"https://api.coinbase.com/v2/exchange-rates?currency=ETH",
-                            'LTC':"https://api.coinbase.com/v2/exchange-rates?currency=LTC"}
 
-        #self.positive_messages = ["McAfee might be on to something...",
-
-                                    # "EAT THE RICH",
-                                    # "https://www.youtube.com/watch?v=y2ak_oBeC-I",
-                                    # "https://www.youtube.com/watch?v=HgzGwKwLmgM",
-                                    # "Have you heard about our lord and saviour, Bitcoin?"
-                                    # ]
-
-        self.neutral_messages = ["YES. UMM HI???? HELLO?????"]
-
-        #self.negative_messages = ["Yeah, yeah I know...","I SWEAR I DIDN'T DO THIS PLEASE I'M A GOOD BOT","Blame Trump","Maybe Dimon was right...","There's a reason nobody knows my identity","https://media.coindesk.com/uploads/2014/03/grumpy-nakamoto.png"]
-
-        self.exchange_rates = {'BTC':{},'ETH':{},'LTC':{}}
+        self.exchange_rates = []
 
         self.negative_file_mtime = None
         self.positive_file_mtime = None
@@ -73,48 +65,11 @@ class SatoshiBot(discord.Client):
             self.neutral_file_mtime = os.path.getmtime("neutral_messages.txt")
 
     async def get_crypto_data(self):
-        for currency,link in self.crypto_links.items():
-            async with aiohttp.get(link) as linkobj:
+        try:
+            async with aiohttp.get("https://api.coinmarketcap.com/v1/ticker/?limit=1000") as linkobj:
                 if linkobj.status == 200:
-                    data = await linkobj.json()
-                    for k,v in data.get('data').get('rates').items():
-                        self.exchange_rates[currency][k] = v.replace(',','')
-    # @client.event
-    # async def hourly_message():
-    #     msg = None
-    #     while True:
-    #         price_string = time.strftime('```%b %d, %Y -- %I:%M%p```')
-    #
-    #         price_string = "%s\n```1 BTC = $%0.2f USD\n1 BTC = %0.5f ETH\n1 BTC = %0.5f LTC\n" % (price_string,
-    #                                                                                             float(data.get('data').get('rates').get('USD').replace(',','')),
-    #                                                                                             float(data.get('data').get('rates').get('ETH').replace(',','')),
-    #                                                                                             float(data.get('data').get('rates').get('LTC').replace(',','')),
-    #                                                                                             )
-    #
-    #         #GET ETH
-    #         btcdata = urllib.request.urlopen("https://api.coinbase.com/v2/prices/ETH-USD/spot")
-    #         data = json.load(btcdata)
-    #         price_string = "%s\n1 ETH = $%0.2f USD" % (price_string,float(data.get('data').get('amount').replace(',','')))
-    #
-    #         #GET LTC
-    #         btcdata = urllib.request.urlopen("https://api.coinbase.com/v2/prices/LTC-USD/spot")
-    #         data = json.load(btcdata)
-    #         price_string = "%s\n1 LTC = $%0.2f USD" % (price_string,float(data.get('data').get('amount').replace(',','')))
-    #
-    #         for channel in client.get_all_channels():
-    #             if channel.name == "bitcoinchat":
-    #                 for pin in await client.pins_from(channel):
-    #                     if pin.author == client.user:
-    #                         msg = pin
-    #                 if msg:
-    #                     await client.edit_message(msg,price_string + "```")
-    #                 else:
-    #                     msg = await client.send_message(channel,price_string + "```")
-    #                 await client.pin_message(msg)
-    #         current_minute = datetime.datetime.today().minute
-    #         current_second = datetime.datetime.today().second
-    #         seconds_left = (59-current_minute)*60 + (60-current_second)
-    #         await asyncio.sleep(seconds_left)
+                    self.exchange_rates = await linkobj.json()
+        except: pass
 
     async def on_ready(self):
         print('Logged in as')
@@ -123,34 +78,45 @@ class SatoshiBot(discord.Client):
         print('------')
 
     async def on_message(self,message):
-        if self.user in message.mentions or message.content.lower().startswith('$btc') or message.content.lower().startswith('$eth') or message.content.lower().startswith('$ltc') or message.content.lower().startswith('$help'):
+        if self.user in message.mentions or message.content.lower().startswith('$'):
 
-            if message.content.lower().startswith('$btc'):
-                msg = await self.send_message(message.channel, 'Getting BTC Price...')
-            elif message.content.lower().startswith('$eth'):
-                msg = await self.send_message(message.channel, 'Getting ETH Price...')
-            elif message.content.lower().startswith('$ltc'):
-                msg = await self.send_message(message.channel, 'Getting LTC Price...')
+
+            crypto_symbol = ""
+            if message.content.lower().startswith('$'):
+                try:
+                    crypto_symbol = re.match("\$?([A-Za-z1-9]+)",message.content).group(1)
+                    msg = await self.send_message(message.channel, 'Getting %s Price...' % crypto_symbol)
+                except:
+                    try:
+                        crypto_symbol = message.content.split(" ")[0]
+                    except: pass
+                    msg = await self.send_message(message.channel, 'Unable to get price for %s' % crypto_symbol)
+
 
             await self.get_crypto_data()
 
-            if message.content.lower().startswith('$btc'):
-                price_string = "1 BTC = $%0.2f USD" % float(self.exchange_rates['BTC']['USD'])
-                await self.edit_message(msg,price_string)
-            elif message.content.lower().startswith('$eth'):
-                price_string = "1 ETH = %0.5f BTC" % float(self.exchange_rates['ETH']['BTC'])
-                await self.edit_message(msg,price_string)
-            elif message.content.lower().startswith('$ltc'):
-                price_string = "1 LTC = %0.5f BTC" % float(self.exchange_rates['LTC']['BTC'])
-                await self.edit_message(msg,price_string)
+            if message.content.lower().startswith('$'):
+                price_float = safe_float([x.get('price_usd',None) for x in self.exchange_rates if x.get('symbol',None) == crypto_symbol.upper()])
+                if price_float > 0 and price_float < 0.01:
+                    price_string = "1 %s = $%0.7f USD" % (crypto_symbol.upper(),price_float)
+                    await self.edit_message(msg,price_string)
+                elif price_float > 0 and price_float >= 0.01:
+                    price_string = "1 %s = $%0.2f USD" % (crypto_symbol.upper(),price_float)
+                    await self.edit_message(msg,price_string)
+                elif price_float == 0:
+                    price_string = "#wrong"
+                    await self.delete_message(msg)
+                    await self.send_message(message.channel,"#wrong")
+
+
             elif message.content.lower().startswith('$help'):
-                await self.send_message(message.channel,'```BTC -> USD = $btc\nETH -> BTC = $eth\nLTC -> BTC = $ltc\n@Satoshi for more info```')
+                await self.send_message(message.channel,'```Convert any symbol to USD by starting with "$"\n@Satoshi for more info```')
 
             if self.user in message.mentions:
                 await self.load_messages()
-                current_btc = float(self.exchange_rates['BTC']['USD'])
+                current_btc = safe_float([x.get('price_usd',None) for x in self.exchange_rates if x.get('symbol',None) == 'BTC'])
                 if self.previous_btc is None:
-                    msg1 = await self.send_message(message.channel,'YES. UMM HI???? HELLO?????')
+                    msg1 = await self.send_message(message.channel,"I'M BACK BITCH!")
                 else:
                     if self.previous_btc < current_btc:
                         if bool(random.getrandbits(1)):
@@ -176,16 +142,16 @@ class SatoshiBot(discord.Client):
                 else:
                     price_trajectory = ""
 
-                price_string = "%s\n%s\n```1 BTC = $%0.2f USD\n1 BTC = %0.5f ETH\n1 BTC = %0.5f LTC\n" % (price_string,price_trajectory,
-                                                                                                    float(self.exchange_rates['BTC']['USD']),
-                                                                                                    float(self.exchange_rates['BTC']['ETH']),
-                                                                                                    float(self.exchange_rates['BTC']['LTC']),
+                price_string = "%s\n%s\n```1 BTC = $%0.2f USD\n1 ETH = %0.5f BTC\n1 LTC = %0.5f BTC\n" % (price_string,price_trajectory,
+                                                                                                    safe_float([x.get('price_usd',None) for x in self.exchange_rates if x.get('symbol',None) == 'BTC']),
+                                                                                                    safe_float([x.get('price_btc',None) for x in self.exchange_rates if x.get('symbol',None) == 'ETH']),
+                                                                                                    safe_float([x.get('price_btc',None) for x in self.exchange_rates if x.get('symbol',None) == 'LTC']),
                                                                                                     )
                 #GET ETH
-                price_string = "%s\n1 ETH = $%0.2f USD" % (price_string,float(self.exchange_rates['ETH']['USD']))
+                price_string = "%s\n1 ETH = $%0.2f USD" % (price_string,safe_float([x.get('price_usd',None) for x in self.exchange_rates if x.get('symbol',None) == 'ETH']))
 
                 #GET LTC
-                price_string = "%s\n1 LTC = $%0.2f USD" % (price_string,float(self.exchange_rates['LTC']['USD']))
+                price_string = "%s\n1 LTC = $%0.2f USD" % (price_string,safe_float([x.get('price_usd',None) for x in self.exchange_rates if x.get('symbol',None) == 'LTC']))
                 await self.send_message(message.channel,price_string + "```")
 
                 self.previous_btc = current_btc
