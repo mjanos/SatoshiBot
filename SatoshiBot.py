@@ -78,21 +78,20 @@ class SatoshiBot(discord.Client):
         print('------')
 
     async def on_message(self,message):
-        valid_currency = False
-        price_fail = False
-        try:
-
-            crypto_symbol = re.match("\$?([A-Za-z1-9]+)",message.content).group(1)
-            if re.match("\$?([A-Za-z]+)",message.content):
-                valid_currency = True
-        except:
-            try:
-                crypto_symbol = message.content.split(" ")[0]
-            except:
-                price_fail = True
-        if self.user in message.mentions or valid_currency:
-
+        if self.user in message.mentions or message.content.lower().startswith("$"):
+            valid_currency = False
+            price_fail = False
             crypto_symbol = ""
+            try:
+                crypto_symbol = re.match("\$?([A-Za-z1-9]+)",message.content).group(1)
+                if re.match("\$([A-Za-z]+)",message.content):
+                    valid_currency = True
+            except:
+                try:
+                    crypto_symbol = message.content.split(" ")[0]
+                except:
+                    price_fail = True
+
             if valid_currency:
                 msg = await self.send_message(message.channel, 'Getting %s Price...' % crypto_symbol)
                 if price_fail:
