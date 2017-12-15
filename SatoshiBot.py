@@ -27,6 +27,8 @@ class SatoshiBot(discord.Client):
         self.positive_gifs_mtime = None
         self.neutral_file_mtime = None
 
+        self.hot10 = []
+
         self.previous_btc = None
 
         super().__init__(*args,**kwargs)
@@ -104,14 +106,23 @@ class SatoshiBot(discord.Client):
                 if price_float > 0 and price_float < 0.01:
                     price_string = "1 %s = $%0.7f USD" % (crypto_symbol.upper(),price_float)
                     await self.edit_message(msg,price_string)
+
+                    self.hot10 = [crypto_symbol] + [x for x in self.hot10 if crypto_symbol.lower().strip() != x.lower().strip()]
+                    if len(self.hot10) > 10:
+                        del self.hot10[-1]
+
                 elif price_float > 0 and price_float >= 0.01:
                     price_string = "1 %s = $%0.2f USD" % (crypto_symbol.upper(),price_float)
                     await self.edit_message(msg,price_string)
+
+                    self.hot10 = [crypto_symbol] + [x for x in self.hot10 if crypto_symbol.lower().strip() != x.lower().strip()]
+                    if len(self.hot10) > 10:
+                        del self.hot10[-1]
+
                 elif price_float == 0:
                     price_string = "#wrong"
                     await self.delete_message(msg)
                     await self.send_message(message.channel,"#wrong")
-
 
             elif message.content.lower().startswith('$help'):
                 await self.send_message(message.channel,'```Convert any symbol to USD by starting with "$"\n@Satoshi for more info```')
@@ -156,6 +167,14 @@ class SatoshiBot(discord.Client):
 
                 #GET LTC
                 price_string = "%s\n1 LTC = $%0.2f USD" % (price_string,safe_float([x.get('price_usd',None) for x in self.exchange_rates if x.get('symbol',None) == 'LTC']))
+
+                #GET HOT 10
+                if self.hot10:
+                    price_string = "%s```\n:fire:HOT 10:fire:```" % (price_string)
+
+                    for c in self.hot10:
+                        price_string = "%s%s: $%s\n" % (price_string,c.upper(),safe_float([x.get('price_usd',None) for x in self.exchange_rates if x.get('symbol',None) == c.upper().strip()]))
+
                 await self.send_message(message.channel,price_string + "```")
 
                 self.previous_btc = current_btc
