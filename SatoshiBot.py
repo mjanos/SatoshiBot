@@ -103,9 +103,11 @@ class SatoshiBot(discord.Client):
 
             if valid_currency:
                 price_float = safe_float([x.get('price_usd',None) for x in self.exchange_rates if x.get('symbol',None) == crypto_symbol.upper()])
+                sat_float = safe_float([x.get('price_btc',None) for x in self.exchange_rates if x.get('symbol',None) == crypto_symbol.upper()]) * 100000000
                 if price_float > 0 and price_float < 0.01:
                     price_string = "1 %s = $%0.7f USD" % (crypto_symbol.upper(),price_float)
-                    await self.edit_message(msg,price_string)
+                    satoshi_string = "\n1 %s = %0.0f SAT" % (crypto_symbol.upper(),sat_float)
+                    await self.edit_message(msg,"```" + price_string + satoshi_string + "```")
 
                     self.hot10 = [crypto_symbol] + [x for x in self.hot10 if crypto_symbol.lower().strip() != x.lower().strip()]
                     if len(self.hot10) > 10:
@@ -113,7 +115,8 @@ class SatoshiBot(discord.Client):
 
                 elif price_float > 0 and price_float >= 0.01:
                     price_string = "1 %s = $%0.2f USD" % (crypto_symbol.upper(),price_float)
-                    await self.edit_message(msg,price_string)
+                    satoshi_string = "\n1 %s = %0.0f SAT" % (crypto_symbol.upper(),sat_float)
+                    await self.edit_message(msg,"```" + price_string + satoshi_string + "```")
 
                     self.hot10 = [crypto_symbol] + [x for x in self.hot10 if crypto_symbol.lower().strip() != x.lower().strip()]
                     if len(self.hot10) > 10:
