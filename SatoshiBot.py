@@ -107,7 +107,8 @@ class SatoshiBot(discord.Client):
                 if price_float > 0 and price_float < 0.01:
                     price_string = "1 %s = $%0.7f USD" % (crypto_symbol.upper(),price_float)
                     satoshi_string = "\n1 %s = %0.0f SAT" % (crypto_symbol.upper(),sat_float)
-                    await self.edit_message(msg,"```" + price_string + satoshi_string + "```")
+                    if price_string or satoshi_string:
+                        await self.edit_message(msg,"```" + price_string + satoshi_string + "```")
 
                     self.hot10 = [crypto_symbol] + [x for x in self.hot10 if crypto_symbol.lower().strip() != x.lower().strip()]
                     if len(self.hot10) > 10:
@@ -116,7 +117,8 @@ class SatoshiBot(discord.Client):
                 elif price_float > 0 and price_float >= 0.01:
                     price_string = "1 %s = $%0.2f USD" % (crypto_symbol.upper(),price_float)
                     satoshi_string = "\n1 %s = %0.0f SAT" % (crypto_symbol.upper(),sat_float)
-                    await self.edit_message(msg,"```" + price_string + satoshi_string + "```")
+                    if price_string or satoshi_string:
+                        await self.edit_message(msg,"```" + price_string + satoshi_string + "```")
 
                     self.hot10 = [crypto_symbol] + [x for x in self.hot10 if crypto_symbol.lower().strip() != x.lower().strip()]
                     if len(self.hot10) > 10:
@@ -138,6 +140,7 @@ class SatoshiBot(discord.Client):
                 else:
                     if self.previous_btc < current_btc:
                         if bool(random.getrandbits(1)):
+
                             await self.send_message(message.channel,random.choice(self.positive_messages))
                         else:
                             await self.send_file(message.channel,os.path.join(os.path.dirname(os.path.realpath(__file__)),"positive_gifs",random.choice(self.positive_files)))
