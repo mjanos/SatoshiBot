@@ -140,18 +140,25 @@ class SatoshiBot(discord.Client):
                 else:
                     if self.previous_btc < current_btc:
                         if bool(random.getrandbits(1)):
-
-                            await self.send_message(message.channel,random.choice(self.positive_messages))
+                            rand_msg = random.choice(self.positive_messages)
+                            if rand_msg:
+                                await self.send_message(message.channel,rand_msg)
                         else:
                             await self.send_file(message.channel,os.path.join(os.path.dirname(os.path.realpath(__file__)),"positive_gifs",random.choice(self.positive_files)))
 
                     elif self.previous_btc > current_btc:
                         if bool(random.getrandbits(1)):
-                            await self.send_message(message.channel,random.choice(self.negative_messages))
+                            rand_msg = random.choice(self.negative_messages)
+                            if rand_msg:
+                                await self.send_message(message.channel,rand_msg)
                         else:
-                            await self.send_file(message.channel,os.path.join(os.path.dirname(os.path.realpath(__file__)),"negative_gifs",random.choice(self.negative_files)))
+                            random_file = random.choice(self.negative_files)
+                            if random_file:
+                                await self.send_file(message.channel,os.path.join(os.path.dirname(os.path.realpath(__file__)),"negative_gifs",random_file))
                     else:
-                        await self.send_message(message.channel,random.choice(self.neutral_messages))
+                        rand_msg = random.choice(self.neutral_messages)
+                        if rand_msg:
+                            await self.send_message(message.channel,rand_msg)
 
                 price_string = time.strftime('```%b %d, %Y -- %I:%M%p```')
                 #GET BTC
@@ -180,8 +187,8 @@ class SatoshiBot(discord.Client):
 
                     for c in self.hot10:
                         price_string = "%s%s: $%s\n" % (price_string,c.upper(),safe_float([x.get('price_usd',None) for x in self.exchange_rates if x.get('symbol',None) == c.upper().strip()]))
-
-                await self.send_message(message.channel,price_string + "```")
+                if price_string:
+                    await self.send_message(message.channel,price_string + "```")
 
                 self.previous_btc = current_btc
         #await self.process_commands(message)
