@@ -141,7 +141,7 @@ class SatoshiBot(discord.Client):
                     if self.previous_btc < current_btc:
                         if bool(random.getrandbits(1)):
                             rand_msg = random.choice(self.positive_messages)
-                            if rand_msg:
+                            if rand_msg.strip():
                                 await self.send_message(message.channel,rand_msg)
                         else:
                             await self.send_file(message.channel,os.path.join(os.path.dirname(os.path.realpath(__file__)),"positive_gifs",random.choice(self.positive_files)))
@@ -149,7 +149,7 @@ class SatoshiBot(discord.Client):
                     elif self.previous_btc > current_btc:
                         if bool(random.getrandbits(1)):
                             rand_msg = random.choice(self.negative_messages)
-                            if rand_msg:
+                            if rand_msg.strip():
                                 await self.send_message(message.channel,rand_msg)
                         else:
                             random_file = random.choice(self.negative_files)
@@ -157,7 +157,7 @@ class SatoshiBot(discord.Client):
                                 await self.send_file(message.channel,os.path.join(os.path.dirname(os.path.realpath(__file__)),"negative_gifs",random_file))
                     else:
                         rand_msg = random.choice(self.neutral_messages)
-                        if rand_msg:
+                        if rand_msg.strip():
                             await self.send_message(message.channel,rand_msg)
 
                 price_string = time.strftime('```%b %d, %Y -- %I:%M%p```')
